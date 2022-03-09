@@ -1,0 +1,4 @@
+export const SHOWLOADING = "SHOWLOADING";
+export const RESET_STORE = "RESET_STORE";
+export const SETWALLETADDR = "SET_WALLET_ADDRESS";
+export const LOGINKEY = "LOGIN_KEY";
