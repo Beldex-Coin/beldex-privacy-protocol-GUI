@@ -10,6 +10,9 @@ import { UserContext } from '../../userContext';
 import BeldexMAT from '../../contract-artifacts/BeldexMAT.json';
 import * as actionTypes from "../../common/actionTypes";
 import BgImage from '../../icons/background.jpg';
+import BN from 'bn.js'
+// const utils = {};
+import crypto from 'crypto';
 let web3Obj = {};
 let contract = {};
 let user = {};
@@ -56,9 +59,7 @@ const Home = () => {
   const handleDrawerToggle = (event) => {
     setAnchorElWallet(event.currentTarget);
     setMobileOpen(!mobileOpen);
-
   };
-
 
   const handleMenuClose = async (selectedWallet) => {
     if (selectedWallet === "BSC") {
@@ -157,7 +158,8 @@ const Home = () => {
 
   const swapMarket = (selectedMarket) => {
     if (selectedMarket === "BNB") {
-      navigate('/dashboard');
+      openUserAuthModal();
+      // navigate('/dashboard');
     } else {
       setSnackbar({ open: true, severity: 'info', message: 'Coming Soon!!!' });
     }
@@ -182,22 +184,54 @@ const Home = () => {
     setAnchorElWallet(null);
   };
 
-  const handleRegister = async (key) => {
-    await user.init();
-    await user.register(key);
-    await user.checkRegistered();
+  const downloadScret = (text) => {
+    const anchor = document.createElement('a')
+    anchor.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent('This private key is for the access of RAZE-pETH account.It cannot be used to access any other Raze account.' + '\n' + text))
+    anchor.setAttribute('download', `raze_secret_key_${Date.now()}`)
+    anchor.style.display = 'none'
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+  }
+
+  const loading = (showLoading) => {
+    dispatch({
+      type: actionTypes.SHOWLOADING,
+      payload: showLoading
+    });
+  };
+
+  const handleRegister = async (key = btoa(new BN(crypto.randomBytes(32), 16).toString())) => {
+    try {
+      loading(true);
+      await user.init();
+      await user.register(key);
+      await user.checkRegistered();
+      await downloadScret(key);
+      loading(false);
+    } catch (e) {
+      setSnackbar({ open: true, severity: 'error', message: e.message });
+      loading(false);
+    }
   }
 
   const handleLogin = async (key) => {
-    await user.init();
-    const loginRes = await user.login(key);
-    userData.setUserDetails(user);
-    if (loginRes !== -1) {
-      dispatch({
-        type: actionTypes.LOGINKEY,
-        payload: key
-      });
-      navigate('/dashboard');
+    try {
+      loading(true);
+      await user.init();
+      const loginRes = await user.login(key);
+      userData.setUserDetails(user);
+      if (loginRes !== -1) {
+        dispatch({
+          type: actionTypes.LOGINKEY,
+          payload: key
+        });
+        navigate('/dashboard');
+      }
+      loading(false);
+    } catch (e) {
+      setSnackbar({ open: true, severity: 'error', message: e.message });
+      loading(false);
     }
   }
 
