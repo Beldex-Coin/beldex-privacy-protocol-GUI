@@ -1,17 +1,15 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
-import { Container } from '@mui/material';
+import { Container, CircularProgress } from '@mui/material';
 import Main from "../Main";
 import * as actionTypes from '../../common/actionTypes';
 
 class Layout extends Component {
-  // dispatch({type: actionTypes.RESET_STORE});
   componentDidMount() {
-  // this.props.dispatch({type: actionTypes.RESET_STORE});
+    // this.props.dispatch({type: actionTypes.RESET_STORE});
     window.addEventListener("beforeunload", this.onUnload)
   }
   onUnload = (e) => {
-
     this.props.dispatch({
       type: actionTypes.SHOWLOADING,
       payload: false
@@ -23,15 +21,23 @@ class Layout extends Component {
   }
 
   render() {
+    if (this.props.isLoading) {
+      document.querySelector('body').classList.add('scrollHidden')
+    } else {
+      document.querySelector('body').classList.remove('scrollHidden')
+
+    }
     return (
-      <Container maxWidth="false" disableGutters className='rootContainer'>
-        <Main {...this.props} />
-        {/* {this.props.isLoading &&
-          <div style={{ background: '#9e9e9e80', height: '100%', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 100 }}>
-            <Spinner style={{ position: 'absolute', top: '50%', left: '50%' }} animation="grow" />
+      <Fragment>
+        <Container maxWidth="false" disableGutters className='rootContainer'>
+          <Main {...this.props} />
+        </Container>
+        {this.props.isLoading &&
+          <div style={{ background: '#0e0e0e7d', height: '100%', width: '100%', position: 'fixed', top: 0, left: 0, zIndex: 100000 }}>
+            <CircularProgress color="primary" sx={{ position: 'absolute', top: '50%', left: '50%' }} />
           </div>
-        } */}
-      </Container>
+        }
+      </Fragment>
     )
   }
 }

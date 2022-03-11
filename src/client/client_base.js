@@ -364,7 +364,6 @@ class ClientBase {
             return 0;
         var guess = aes.decrypt(encGuess.slice(2), that.account.aesKey);
         guess = parseInt(guess, 16);
-        console.log("guess: ", guess);
         return guess;
     }
 
@@ -430,8 +429,6 @@ class ClientBase {
         registraction transaction.
     */
     async register (secret, registerGasLimit) {
-        console.log('--registerGasLimit-', registerGasLimit);
-        console.log('--secret-', secret);
         var that = this;
         if (secret === undefined) {
             that.account.keypair = utils.createAccount();
@@ -470,7 +467,6 @@ class ClientBase {
     async login(secret) {
 
       var that = this;
-
       if (secret === undefined) {
         that.account.keypair = utils.createAccount();
         that.account.aesKey = aes.generateKey();

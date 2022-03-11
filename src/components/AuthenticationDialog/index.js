@@ -87,15 +87,15 @@ const AuthenticationDialog = (props) => {
     }
   }
 
-  const handlePrivateKeyGen = () => {
-    if(pickOwn) {
-      if(ownKey) {
+  const handlePrivateKeyGen = async () => {
+    if (pickOwn) {
+      if (ownKey) {
         handleRegister(ownKey);
       } else {
         setSnackbar({ open: true, severity: 'warning', message: 'Input field should not be empty' });
       }
-    } else if(!pickOwn) {
-      handleRegister();
+    } else if (!pickOwn) {
+      await handleRegister();
     }
   }
 
@@ -104,9 +104,7 @@ const AuthenticationDialog = (props) => {
     setOwnKey(undefined)
   }
 
-
   return (
-
     <Fragment>
       <Dialog onClose={handleClose} open={open}
         classes={{
@@ -115,7 +113,7 @@ const AuthenticationDialog = (props) => {
 
         <DialogTitle classes={{ root: classes.dialogTitle }}>
           {!pickOwn && (registerView ? 'Register' : 'Login into your Account')}
-          {pickOwn && 'Enter your private key.'}
+          {pickOwn && 'Enter your Private Key'}
           <IconButton
             aria-label="close"
             onClick={handleClose}
@@ -130,8 +128,8 @@ const AuthenticationDialog = (props) => {
             Please use our key generator or a key that is random as your wallet private key for the beldex private key. Copy it to a piece of paper and keep it in a safe place. Never share your private key with others. This private key is for the access of beldex - BDX account. It cannot be used to access any other beldex account.
           </DialogContentText>}
           {!pickOwn && !registerView && <TextInput type="text" id="privateKey" placeholder="Enter Your Private Key" maxIcon={false} name="privateKey" value={privateKey} onChange={handlePrivateKeyChange} sxObj={{ pb: 0 }} />}
-          
-          {pickOwn &&  <TextInput type="text" id="ownKey" placeholder="Enter Your Private Key" maxIcon={false} name="ownKey" value={ownKey} onChange={handlePickOwnKeyChange} sxObj={{ pb: 4 }} />}
+
+          {pickOwn && <TextInput type="text" id="ownKey" placeholder="Enter Your Private Key" maxIcon={false} name="ownKey" value={ownKey} onChange={handlePickOwnKeyChange} sxObj={{ pb: 4 }} />}
 
           {!pickOwn && !registerView && <Typography sx={{ pt: 2, pb: 3, fontSize: 14 }} align="right" color="text.subTitle">Don't have an account?
             <Link component="button" sx={{ pl: '5px', fontSize: '14px' }} variant="body2" onClick={showRegister} underline="none">Register</Link>

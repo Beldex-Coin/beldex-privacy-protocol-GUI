@@ -43,7 +43,7 @@ const viewLabelArr = {
   transfer: {
     subTitle: "My Beldex Account Address",
     btnLabel: "Confirm Transfer",
-    helperText: ""
+    helperText: "Copy your Public Hash"
   },
   redeem: {
     subTitle: "Redeem BNB to wBNB",
@@ -90,6 +90,7 @@ const Dashboard = (props) => {
   useEffect(() => {
 
     const handlePageLoad = async event => {
+      loading(true)
       web3Obj = new Web3(window.ethereum);
       if (storeAddr.walletName === "Meta Mask") {
         web3Obj = new Web3(window.ethereum);
@@ -101,6 +102,7 @@ const Dashboard = (props) => {
       await user.init();
       await user.login(loginKey.key);
       await getBalance(storeAddr.walletAddress);
+      loading(false)
     };
 
     window.addEventListener("load", handlePageLoad);
@@ -125,8 +127,6 @@ const Dashboard = (props) => {
     const balance = await web3Obj.eth.getBalance(address, (err, wei) => { });
     if (user.account) {
       await user.account.update();
-      console.log(user.account.available());
-      console.log(user.account.pending());
       setMintValue(user.account.available() + user.account.pending());
     }
     setWalletBal(balance / 1e16);
@@ -205,15 +205,25 @@ const Dashboard = (props) => {
     }
   }
 
+  const loading = (showLoading) => {
+    dispatch({
+      type: actionTypes.SHOWLOADING,
+      payload: showLoading
+    });
+  };
+
   const makeRedeem = async () => {
     setBtnDisabled(true);
     try {
+      loading(true);
       setSnackbar({ open: true, severity: 'warning', message: '[Short window] Your redeem has been queued. Please wait' });
       await user.redeem(transValue);
+      await getBalance(walletAddress);
       setSnackbar({ open: true, severity: 'success', message: `Redeem of ${transValue} Beldex BNB was successful` });
-      getBalance(walletAddress);
+      loading(false);
     } catch (e) {
       setSnackbar({ open: true, severity: 'error', message: e.message });
+      loading(false);
     }
     setBtnDisabled(false);
   }
@@ -221,11 +231,14 @@ const Dashboard = (props) => {
   const makeMint = async () => {
     setBtnDisabled(true);
     try {
+      loading(true);
       await user.mint(transValue);
+      await getBalance(walletAddress);
       setSnackbar({ open: true, severity: 'success', message: `Mint of ${transValue} Beldex BNB was successful` });
-      getBalance(walletAddress);
+      loading(false);
     } catch (e) {
       setSnackbar({ open: true, severity: 'error', message: e.message });
+      loading(false);
     }
     setBtnDisabled(false);
   }
@@ -233,11 +246,14 @@ const Dashboard = (props) => {
   const makeTransfer = async () => {
     setBtnDisabled(true);
     try {
+      loading(true);
       await user.transfer(address, transValue);
+      await getBalance(walletAddress);
       setSnackbar({ open: true, severity: 'success', message: `Transferred of ${transValue} Beldex BNB was successful` });
-      getBalance(walletAddress);
+      loading(false);
     } catch (e) {
       setSnackbar({ open: true, severity: 'error', message: e.message });
+      loading(false);
     }
     setBtnDisabled(false);
   }
@@ -336,7 +352,7 @@ const Dashboard = (props) => {
           <Box sx={{ bgcolor: 'background.card', borderRadius: '20px', margin: '20px 5px', minHeight: '500px', p: '45px 45px 60px 45px' }}>
             <Typography variant="h5" sx={{ pb: '5px', fontWeight: 700 }} color="text.light" component="div">{view.toLowerCase().replace(/\w/, firstLetter => firstLetter.toUpperCase())}</Typography>
             <Typography component="div" sx={{ pb: '40px' }} color="text.light" variant="subtitle1">{viewLabel}</Typography>
-            <TextInput type="number" value={transValue} placeholder="0 Unit" formLabel={viewLabelArr[view].helperText} onChange={handleInputChange} maxIcon={view !== "mint"} name="unit" inputProps={{ min: 0, inputMode: 'numeric', pattern: '[0-9]*' }} maxOnClick={handleMaxOnClick} />
+            <TextInput type="number" value={transValue} placeholder="0 Unit" formLabel={viewLabelArr[view].helperText} onChange={handleInputChange} maxIcon={view !== "mint"} name="unit" inputProps={{ min: 0, inputMode: 'numeric', pattern: '[0-9]*' }} maxOnClick={handleMaxOnClick} publicHash={user && user.account && user.account.publicKeyEncoded()} />
             {view === "transfer" &&
               <Fragment>
                 <Typography component="div" sx={{ textAlign: 'left', pb: '5px' }} color="text.light" variant="subtitle1">Recipient Address</Typography>
