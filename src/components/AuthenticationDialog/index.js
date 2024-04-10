@@ -88,6 +88,7 @@ const AuthenticationDialog = (props) => {
     if (navigator.onLine) {
       if (registerView) {
         setRegisterView(false)
+        setPrivateKey('');
       } else {
         if (privateKey) {
           handleLogin(privateKey)

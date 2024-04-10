@@ -1,4 +1,5 @@
 const HTMLWebpackPlugin = require('html-webpack-plugin');
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const webpack = require('webpack')
 
 module.exports = {
@@ -76,6 +77,7 @@ module.exports = {
     new webpack.ProvidePlugin({
       process: 'process/browser',
     }),
+    new NodePolyfillPlugin(),
   ],
   devtool: 'inline-source-map',
   devServer: {

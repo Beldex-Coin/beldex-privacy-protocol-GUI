@@ -143,7 +143,7 @@ class ClientBase {
                 updated.pending = this._state.pending;
                 updated.nonceUsed = this._state.nonceUsed;
                 updated.lastRollOver = await that._getRound(counter);
-                if (this._state.lastRollOver < updated.lastRollOver) {
+                if (this._state.lastRollOver != updated.lastRollOver) {
                     updated.available += updated.pending;
                     updated.pending = 0;
                     updated.nonceUsed = false;
@@ -212,39 +212,39 @@ class ClientBase {
         return await beldex.methods.registered(hashedKey).call();
     }
 
-    async setRedeemFeeStrategy (numerator, denominator) {
-        var that = this;
-        let transaction = that.beldex.methods.setRedeemFeeStrategy(numerator, denominator)
-                .send({from: that.home, gas: that.gasLimit})
-                .on('transactionHash', (hash) => {
-                    console.log("Change redeem fee submitted (txHash = \"" + hash + "\").");
-                })
-                .on('receipt', (receipt) => {
-                    console.log("Change redeem fee successful.");
-                })
-                .on('error', (error) => {
-                    console.log("Change redeem fee failed: " + error);
-                    throw error;
-                });
-        return transaction;
-    }
+    // async setRedeemFeeStrategy (numerator, denominator) {
+    //     var that = this;
+    //     let transaction = that.beldex.methods.setRedeemFeeStrategy(numerator, denominator)
+    //             .send({from: that.home, gas: that.gasLimit})
+    //             .on('transactionHash', (hash) => {
+    //                 console.log("Change redeem fee submitted (txHash = \"" + hash + "\").");
+    //             })
+    //             .on('receipt', (receipt) => {
+    //                 console.log("Change redeem fee successful.");
+    //             })
+    //             .on('error', (error) => {
+    //                 console.log("Change redeem fee failed: " + error);
+    //                 throw error;
+    //             });
+    //     return transaction;
+    // }
 
-    async setTransferFeeStrategy (numerator, denominator) {
-        var that = this;
-        let transaction = that.beldex.methods.setTransferFeeStrategy(numerator, denominator)
-                .send({from: that.home, gas: that.gasLimit})
-                .on('transactionHash', (hash) => {
-                    console.log("Change transfer fee submitted (txHash = \"" + hash + "\").");
-                })
-                .on('receipt', (receipt) => {
-                    console.log("Change transfer fee successful.");
-                })
-                .on('error', (error) => {
-                    console.log("Change transfer fee failed: " + error);
-                    throw error;
-                });
-        return transaction;
-    }
+    // async setTransferFeeStrategy (numerator, denominator) {
+    //     var that = this;
+    //     let transaction = that.beldex.methods.setTransferFeeStrategy(numerator, denominator)
+    //             .send({from: that.home, gas: that.gasLimit})
+    //             .on('transactionHash', (hash) => {
+    //                 console.log("Change transfer fee submitted (txHash = \"" + hash + "\").");
+    //             })
+    //             .on('receipt', (receipt) => {
+    //                 console.log("Change transfer fee successful.");
+    //             })
+    //             .on('error', (error) => {
+    //                 console.log("Change transfer fee failed: " + error);
+    //                 throw error;
+    //             });
+    //     return transaction;
+    // }
 
     async setRoundBase (round_base) {
         var that = this;
@@ -318,8 +318,9 @@ class ClientBase {
             else
                 return counter / that.round_len;
         }
-        else if (that.round_base == 1)
+        else if (that.round_base == 1){
             return Math.floor((counter === undefined ? (new Date).getTime() / 1000 : counter) / that.round_len);
+        }
         else
             throw new Error("Invalid round base.");
     }
@@ -358,7 +359,8 @@ class ClientBase {
         let encGuess = await that.beldex.methods.getGuess(that.account.publicKeySerialized()).call();
         if (encGuess == null)
             return 0;
-        var guess = aes.decrypt(encGuess.slice(2), that.account.aesKey);
+        var guess = aes.decrypt(encGuess.slice(2), that.account.aesKey); //decryption of available amount
+        console.log("guess : ",guess);
         guess = parseInt(guess, 16);
         return guess;
     }
@@ -372,7 +374,7 @@ class ClientBase {
         var that = this;
         that.checkRegistered();
         let currentRound = await that._getRound();
-        let encBalances = await that.beldex.methods.getBalance([that.account.publicKeySerialized()], currentRound + 1).call();
+        let encBalances = await that.beldex.methods.getBalance([that.account.publicKeySerialized()]).call();
         var encBalance = elgamal.unserialize(encBalances[0]);
 
         var guess = await that.getGuess();
@@ -392,11 +394,12 @@ class ClientBase {
         var that = this;
         that.checkRegistered();
         let encState = await that.beldex.methods.getAccountState(that.account.publicKeySerialized()).call();
-        var encAvailable = elgamal.unserialize(encState['y_available']);
-        var encPending = elgamal.unserialize(encState['y_pending']);
-
+        //Balance fetching from the contract
+        var encAvailable = elgamal.unserialize(encState['y_available']); // available
+        var encPending = elgamal.unserialize(encState['y_pending']); // pending
+        // balance = available + pending
         var guess = await that.getGuess();
-
+        console.log("[account sync] guess : ",guess);
         that.account.setAvailable(
             elgamal.decrypt(encAvailable, that.account.privateKey(), guess)
         );
@@ -440,12 +443,14 @@ class ClientBase {
             // This branch would recover the account previously bound to the secret, and the corresponding balance.
             return await that.syncAccountState();
         } else {
+            var gasPrice = await this.web3.eth.getGasPrice();
+            console.log('Gasprice in Gwei',this.web3.utils.fromWei(gasPrice, 'gwei'))
 
             var [c, s] = utils.sign(that.beldex._address, that.account.keypair);
             if (registerGasLimit === undefined)
                 registerGasLimit = 190000;
             let transaction = that.beldex.methods.register(that.account.publicKeySerialized(), c, s)
-                .send({from: that.home, gas: registerGasLimit})
+                .send({from: that.home, gas: registerGasLimit, gasPrice: gasPrice})
                 .on('transactionHash', (hash) => {
                     console.log("Registration submitted (txHash = \"" + hash + "\").");
                 })
@@ -520,6 +525,7 @@ class ClientBase {
         that.checkValue();
         var account = that.account;
         var state = await account.update();
+        console.log('[Redeem] account.balance() : ', account.balance());  //available(acc[]) + pending(pending[])
         if (value > account.balance())
             throw new Error("Requested redeem amount of " + value + " exceeds account balance of " + account.balance() + ".");
         var wait = await that._away();
@@ -560,28 +566,38 @@ class ClientBase {
         console.log("Initiating redeem.");
         value = value * 1e18/that.unit;
         let currentRound = await that._getRound();
-        let encBalances = await that.beldex.methods.getBalance([account.publicKeySerialized()], currentRound).call();
+        let encBalances = await that.beldex.methods.getBalance([account.publicKeySerialized()]).call();
         var encBalance = elgamal.unserialize(encBalances[0]);
+        //aes.decrypt(encGuess.slice(2), that.account.aesKey);
         var encNewBalance = elgamal.serialize(elgamal.subPlain(encBalance, value));
-
+        // lastrollover is currentblockheight/24(roundlen)
         var proof = that.service.proveRedeem(
-            encNewBalance[0],
-            encNewBalance[1],
-            account.publicKeySerialized(),
-            state.lastRollOver,
-            that.home,
-            account.privateKey(),
-            state.available - value
+            encNewBalance[0], // balance(total) old values before this redeem
+            encNewBalance[1], // balance (total) old values before this redeem
+            account.publicKeySerialized(),  //publickey
+            state.lastRollOver, //lastprocess height
+            that.home, // msg.sender
+            account.privateKey(), //privatekey
+            state.available - value //last available - value
         );
         var u = bn128.serialize(utils.u(state.lastRollOver, account.privateKey()));
 
         let encGuess = '0x' + aes.encrypt(new BN(account.available()).toString(16), account.aesKey);
 
+        var gasPrice = await this.web3.eth.getGasPrice();
+        console.log('Gasprice in Gwei',this.web3.utils.fromWei(gasPrice, 'gwei'))
+
+        /* Can't use this estimate here because it seems to modify the contract state, making the proof invalid... */
+        // var redeemGas = await that.beldex.methods.redeem(account.publicKeySerialized(), value, u, proof, encGuess)
+        //     .estimateGas({from: that.home, gas: that.gasLimit});
+        // console.log("Estimated Redeem gas: ", redeemGas);
+
+
         if (redeemGasLimit === undefined)
             redeemGasLimit = 3000000;
         localStorage.removeItem('redeem_tx_hash')
-        let transaction = that.beldex.methods.redeem(account.publicKeySerialized(), value, u, proof, encGuess)
-            .send({from: that.home, gas: redeemGasLimit})
+        let transaction = that.beldex.methods.redeem(account.publicKeySerialized(), value, u, proof, encGuess) // available amount
+            .send({from: that.home, gas: redeemGasLimit, gasPrice: gasPrice})
             .on('transactionHash', (hash) => {
                 console.log("redeem submitted (txHash = \"" + hash + "\").");
                 localStorage.setItem('redeem_tx_hash',hash)
@@ -733,7 +749,7 @@ class ClientBase {
         var serializedY = y.map(bn128.serialize);
 
         let currentRound = await that._getRound();
-        let encBalances = await that.beldex.methods.getBalance(serializedY, currentRound).call();
+        let encBalances = await that.beldex.methods.getBalance(serializedY).call();
 
         var unserialized = encBalances.map((ct) => elgamal.unserialize(ct));
         if (unserialized.some((ct) => ct[0].eq(bn128.zero) && ct[1].eq(bn128.zero)))
@@ -779,13 +795,17 @@ class ClientBase {
         //console.log("Estimated transfer gas: ", transferGas);
 
         var gasPrice = await this.web3.eth.getGasPrice();
+        console.log('Gasprice in Gwei',this.web3.utils.fromWei(gasPrice, 'gwei'))
+
         if (transferGasLimit === undefined)
             transferGasLimit = 5470000 + 500000 * decoys.length;
+
+        console.log('transferGasLimit:',transferGasLimit);
         var maxFeeValue = that.web3.utils.toBN(new BigNumber(transferGasLimit * gasPrice)).toString();
         localStorage.removeItem('transfer_tx_hash')
         let transaction =
             that.beldex.methods.transfer(C, D, serializedY, u, proof)
-                .send({from: that.home, value: maxFeeValue, gas: transferGasLimit})
+                .send({from: that.home, gas: transferGasLimit, gasPrice: gasPrice})
                 .on('transactionHash', (hash) => {
                     that._transfers.add(hash);
                     console.log("Transfer submitted (txHash = \"" + hash + "\")");

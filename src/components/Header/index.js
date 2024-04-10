@@ -14,6 +14,10 @@ import close from '../../icons/Close.svg';
 import arrow from '../../icons/arrow.svg';
 import MaticLogo from '../../icons/polygon-matic-icon.png';
 import * as actionTypes from "../../common/actionTypes";
+import {
+ 
+  CustomizedSnackbars,
+} from "../../components";
 
 const componentStyle = theme => {
   return ({
@@ -62,6 +66,11 @@ const HeaderCom = (props) => {
   const { showNav, classes, walletAddress, handleDrawerToggle, handleWalletMenuClose, handleCloseMenu, walletBal, publicHash } = props;
   const [sWalletAddress, setWalletAddress] = React.useState(walletAddress);
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [snackbar, setSnackbar] = React.useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   let navigate = useNavigate();
   const dispatch = useDispatch();
@@ -95,10 +104,20 @@ const HeaderCom = (props) => {
         walletName: ''
       }
     });
+    dispatch({
+      type: actionTypes.LOGINKEY,
+      payload: ''
+    });
     if (location.pathname === '/dashboard') navigate('/')
   }
 
 
+  const snackbarHandleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -111,13 +130,18 @@ const HeaderCom = (props) => {
 
   const copyContent = async (e) => {
     await navigator.clipboard.writeText(publicHash);
+    setSnackbar({
+      open: true,
+      severity: "success",
+      message: "Copied to clipboard.",
+    });
   }
 
   return (
     <AppBar sx={{ padding: { xs: '10px', sm: '10px 90px' } }} position="fixed">
       <Container maxWidth="false" disableGutters>
         <Toolbar disableGutters sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <img onClick={() => navigate('/')} alt="" height="74px" width="auto" src={logo} />
+          <img onClick={()=>navigate(0)} alt="" height="74px" width="auto" src={logo} />
 
           <Box sx={{ flexGrow: 0, display: 'flex', gap: '10px' }}>
             {location.pathname === '/dashboard' &&
@@ -256,7 +280,10 @@ const HeaderCom = (props) => {
             >
               <Box sx={{background: 'transparent', width: '440px', padding: '15px'}}>
                 <Box 
-                sx={{display: 'flex', width: '30px', height: '30px', borderRadius: '15px', background: 'rgb(41, 41, 57)', border: 'solid 1px #5a5a5a', marginLeft: 'auto', justifyContent: 'center', flex: '1 1 0', position: 'absolute', right: '0px',  top: '0px', zIndex: '1301'}} onClick={handleClose}
+                sx={{display: 'flex', width: '30px', height: '30px', borderRadius: '15px', background: 'rgb(41, 41, 57)', border: 'solid 1px #5a5a5a', marginLeft: 'auto', justifyContent: 'center', flex: '1 1 0', position: 'absolute', right: '0px',  top: '0px', zIndex: '1301','&:hover': {
+                  borderColor:'white',
+                  cursor: 'pointer', // Show pointer cursor on hover
+                },}} onClick={handleClose}
                 >
                   <img alt="" width="15px" src={close} />
                 </Box>
@@ -281,6 +308,12 @@ const HeaderCom = (props) => {
             </Popover>
           </Box>
         </Toolbar>
+        <CustomizedSnackbars
+        open={snackbar.open}
+        handleClose={snackbarHandleClose}
+        severity={snackbar.severity}
+        message={snackbar.message}
+      />
       </Container>
     </AppBar>
   );

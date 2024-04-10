@@ -1,25 +1,29 @@
 const config = {
     mnemonic: "must antenna drop draw repeat crumble excuse skin stumble either mask plate",
     deployed: {
-        'Utils': "0xB96D82fC902D42F661D413b1fDE0609b861560E3",
-        'BeldexIP': "0xC8B8Bd9CD42c4b107726E628EE0E4E8a6eA74C76",
-        'BeldexRedeem': "0xCdACD026914b130e9BaB1614Bfc41B436866b78c",
-        'BeldexTransfer': "0x0386996eaE4a6E0596f539bD933E3c8A6A67c572",
-        'BeldexMAT': "0x8b089355D16975dBd013d4A76274E58Ce2F5499B",
-        // 'Utils':  "0x4b07413e81d8a546301ee9669b6c8ac1f5804560",
-        // 'BeldexIP':  "0x5c1b43f166C0aA616B0bF11A2F633e37706A13E7",
-        // 'BeldexRedeem':  "0x4b07413e81d8a546301ee9669b6c8ac1f5804560",
-        // 'BeldexTransfer':  "0x0813c16dcf219d8ea3c316aa1fa37ab3f36bb416",
-        // 'BeldexMAT' : "0x5bd5f5f24890681acbcfed2124f2b561941aba51",
+        // MaticTestnet
+        'Utils': "0xA1bAC03892A520A5981f237CbbfD7173Ea1b048a",
+        'BeldexIP': "0xd34A37dbb2281Dfaf8e130487d4b097AFbcACaEd",
+        'BeldexRedeem': "0xB6e93c19B64632bafE7FeDDC528969Ac85CB055f",
+        'BeldexTransfer': "0x06638FCD2CC0e5496Fac4D9436076f14a89c1d9b",
+        'BeldexMAT': "0xB7bDc9f6379700b5F42c313540138ad9EC0db4A4",
+
+        // MaticMainnet
+        // 'Utils': "0x96C08939400Fa0FfD401607218fEAE3fC4AF1BBE",
+        // 'BeldexIP': "0x4Ed33123AA3F64aeA6a69130C6662ec13dc4E2dF",
+        // 'BeldexRedeem': "0x8B44660A56a25636c733d77168240C304436C449",
+        // 'BeldexTransfer': "0xa80d8D48E25D3e6172518417083784B4b21357CD",
+        // 'BeldexMAT': "0xf501540b275587A090c92b0a608ce7e8712F535A",
+
+        //BNBTestnet
+        // 'BeldexMAT': '0xDc439ABA0ef1E91BE9a270110392861Fab7005b2',
+        // 'BeldexIP': '0x63B76B38628c6D3e2373f8FeDf93DfEa86b2773D',
+        // 'BeldexRedeem': '0x4Ef5c5ea67a4190dbd05d831C89993550D273768',
+        // 'BeldexTransfer': '0x2Ac6890E0492A555344905c69C67e4d44C7Db83a',
+        // 'Migrations': '0x1b898a331b8a5DE906b30FFf480B8B33de406ca9',
+        // 'Utils': '0xd3941C0f1C60C21540621a574b28aBF0D10543ee',
+        
     }
-    // deployed: {
-    //     'Utils': "0x5Bd0CC10109243e8441329AF1d19b6c3a2a8BDbA",
-    //     'wBDX': "0xd514398Ba7ce5fE4827af193CdaB3c781E3055f0",
-    //     'BeldexIP': "0x2a31F0C9daBaE331127C774138048E1403b5C2E0",
-    //     'BeldexRedeem': "0xaCaD1883A876EDeEbEbdC3bFD003baf6B62c616e",
-    //     'BeldexTransfer': "0xae93F2e33606326d9732c2E6Ab3Ed1EC8B7e2eaf",
-    //     'BeldexETH': "0xa26131F49F889a3b4a0C64B2c1381c1ad7021E9F",
-    // }
 }
 
 export default config;
